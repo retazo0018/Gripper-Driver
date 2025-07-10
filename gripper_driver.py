@@ -17,7 +17,7 @@ class GripperState:
 
 
 class GripperDriver:
-    def __init__(self, host='127.0.0.1', port=8000, timeout=2):
+    def __init__(self, host='127.0.0.1', port=8000, timeout=5):
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -25,6 +25,7 @@ class GripperDriver:
         self.state = GripperState()
         self.lock = threading.Lock()
         self.connected = False
+        self.multi_part_commands = ["MOVE", "CALIBRATE"]
         self._connect()
 
     def _connect(self):
@@ -35,13 +36,31 @@ class GripperDriver:
             self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
             self.connected = True
+            self._initialize_gripperstate()
             print("[INFO] Connection established.")
-            self.get_status()
+            if not self.state.is_calibrated:
+                print("[WARNING] Gripper not calibrated. Calibrating...")
+                self.calibrate()
+                self.state.is_calibrated = True
             
         except (socket.timeout, ConnectionRefusedError, OSError) as e:
             self.connected = False
             print(f"[ERROR] Connection failed: {e}")
-            self._attempt_recovery()     
+            self._attempt_recovery()   
+
+    def _initialize_gripperstate(self):
+        self._send_command("STATUS")
+        response = self._receive_response()[0]
+        self.state.width_mm, self.state.speed, self.state.torque, self.state.min_width, self.state.max_width = map(float, response.strip().split(","))
+    
+    def disconnect(self):
+        if self.socket:
+            self._send_command("BYE")
+            response = self._receive_response()
+            self.socket.close()
+            self.socket = None
+            self.connected = False
+            print("[INFO] Disconnected from gripper")
 
     def _send_command(self, cmd):
         """Send a string command over TCP."""
@@ -56,14 +75,30 @@ class GripperDriver:
             self._attempt_recovery()
 
     def _receive_response(self):
-        """Receive and parse response from the gripper."""
+        """Receive any number of lines until 'END' is seen or socket closes."""
+        self.socket.settimeout(2.0)
+        response_lines = []
+        buffer = ""
+
         try:
-            data = self.socket.recv(1024).decode('utf-8')
-            print(f"[RESPONSE] Received: {data}")
-            return data
+            while True:
+                chunk = self.socket.recv(1024).decode("utf-8")
+                if not chunk:
+                    break
+                buffer += chunk
+
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    line = line.strip()
+                    if line == "END":
+                        response = "\n".join(f"[RESPONSE] Received: {line}" for line in response_lines)
+                        print(f"{response}")
+                        return response_lines
+                    if line:
+                        response_lines.append(line)
         except socket.timeout:
-            print("[WARNING] Response timeout.")
-            return None
+            print("[CLIENT] Timeout while waiting for complete response.")
+            return response_lines if response_lines else None
     
     def _attempt_recovery(self):
         """Attempt to reconnect to the gripper."""
@@ -76,38 +111,43 @@ class GripperDriver:
             pass
         self._connect()
 
-    def move_to(self, width_mm):
-        """Command the gripper to move to a specified width."""
+    def move_to(self, width_mm, speed=None):
+        """Command the gripper to move to a specified width and speed."""
         with self.lock:
-            if not self.state.is_calibrated:
-                print("[WARNING] Gripper not calibrated. Calibrating...")
-                self.calibrate()
-                self.state.is_calibrated = True
             if not (self.state.min_width <= width_mm <= self.state.max_width):
                 print("[ERROR] Width out of range.")
                 return
-            self._send_command(f"MOVE {width_mm}")
+            if speed is not None:
+                self._send_command(f"MOVE({width_mm},{speed})")
+            else:
+                self._send_command(f"MOVE({width_mm})")
             ack = self._receive_response()
-            print(f"[CLIENT] Server responded: {ack}")
+    
+    def get_pos(self):
+        self._send_command("POS?")
+        response = self._receive_response()[0]
+        self.state.width_mm = map(float, response.strip().split(","))
+        return response
 
-    def get_status(self):
-        self._send_command("STATUS")
-        print("[CLIENT] Sent STATUS command")
-        response = self._receive_response()
-        self.state.width_mm, self.state.speed, self.state.torque, self.state.min_width, self.state.max_width = map(float, response.strip().split(","))
+    def get_speed(self):
+        self._send_command("SPEED?")
+        response = self._receive_response()[0]
+        self.state.speed = map(float, response.strip().split(","))
+        return response
+    
+    def get_force(self):
+        self._send_command("FORCE?")
+        response = self._receive_response()[0]
+        self.state.torque = map(float, response.strip().split(","))
+        return response
+
+    def get_gripstate(self):
+        self._send_command("GRIPSTATE?")
+        response = self._receive_response()[0]
+        self.state.gripstate = map(float, response.strip().split(","))
         return response
 
     def calibrate(self):
         self._send_command("CALIBRATE")
-        print("[CLIENT] Sent CALIBRATE command")
         response = self._receive_response()
         return response
-    
-    def execute_sequence(self, sequence):
-        for action in sequence:
-            cmd, val = action
-            if cmd == "MOVE":
-                self.move_to(val)
-            elif cmd == "WAIT":
-                time.sleep(val)
-
