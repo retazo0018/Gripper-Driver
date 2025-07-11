@@ -1,3 +1,6 @@
 # Cache
 __pycache__/
 .DS_Store
+
+# Pytest Cache
+.pytest_cache/

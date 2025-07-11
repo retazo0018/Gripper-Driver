@@ -4,6 +4,8 @@ Program a driver for a two-finger gripper used in bin picking applications. Goal
 See [task overview](task.md) to know the details of this challenge.
 
 # Getting-started
+- Run `pytest -v` to test the setup once.
+
 - Run `python gripper_sim.py` in a terminal launches the socket server that controls the mock gripper.
 
 - Run `python interact.py` that starts a client that communicates with the gripper. This script sends commands to the gripper server. Type `help` in the CLI to know the list of commands and their purposes.

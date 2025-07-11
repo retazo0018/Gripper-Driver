@@ -24,6 +24,9 @@ if __name__ == "__main__":
             except (IndexError, ValueError):
                 print("Invalid move command. Usage: move(<float>, <float>)")
         
+        elif command == "calibrate":
+            driver.calibrate()
+
         elif command == "pos?":
             driver.get_pos()
         
@@ -42,6 +45,7 @@ if __name__ == "__main__":
         elif command == "help":
             print("Available commands:")
             print("move(<float>, <float>)   - Move gripper to position. Specify width and speed")
+            print("calibrate                - Calibrate the gripper with default min and max width")           
             print("pos?                     - the current position of the gripper jaws (open width)")
             print("speed?                   - Get current speed in mm/s")
             print("force?                   - Get current force value in N")
