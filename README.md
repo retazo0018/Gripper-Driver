@@ -45,7 +45,7 @@ This module is present in `gripper_driver.py` and provides a communication inter
 ## Mock Gripper Simulation
 Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware.
 
-### Features**
+### Features
 - **Command Execution**:
     - The mock gripper receives parsed and type-checked commands from the driver. It executes the actions specified in each command, mimicking the behavior of the real gripper.
 - **State Management**:
