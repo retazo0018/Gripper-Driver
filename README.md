@@ -13,9 +13,11 @@ See [task overview](task.md) to know the details of this challenge.
 - Run `python gripper_driver.py` to start a client CLI to with the mock gripper. The communication is established through sockets as text-based interface. Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
 
 # Sample Outputs
+![alt text](docs/usage_eg1.png "Usage Example 1")
 
 ## Example - MOVE, GRIP and RELEASE Commands
-- The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
+The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
+
 ![alt text](docs/usage_eg2.png "Usage Example 2")
 
 # Codebase
@@ -44,6 +46,7 @@ This module is present in `gripper_driver.py` and provides a communication inter
 
 ## Mock Gripper Simulation
 Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware.
+![alt text](docs/state_flow_diagram.png "SFD")
 
 ### Features
 - **Command Execution**:

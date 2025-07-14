@@ -66,6 +66,12 @@ class GripperDriver:
             self.socket = None
             self.connected = False
             print("[E_SUCCESS] Disconnected from gripper")
+    
+    def stop(self):
+        if self.socket:
+            self._send_command("STOP")
+            response = self._receive_response()
+            print("[E_SUCCESS] Returned to IDLE state.")
 
     def _send_command(self, cmd):
         """Send a string command over TCP."""

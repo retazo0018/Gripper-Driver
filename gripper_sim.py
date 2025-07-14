@@ -99,9 +99,14 @@ class MockServer:
                         conn.sendall(b"END\n")
                     
                     elif command == "BYE":
-                        self.gripstate = 0
                         self.is_connected = False
                         conn.sendall(b"ACK BYE\n")
+                        conn.sendall(b"END\n")
+                    
+                    elif command == "STOP":
+                        conn.sendall(b"ACK STOP\n")
+                        self.gripstate = 0
+                        conn.sendall(b"FIN STOP\n")
                         conn.sendall(b"END\n")
                     
                     elif command.startswith("GRIP"):
@@ -117,8 +122,8 @@ class MockServer:
                                     self.torque, self.grip_part_width, self.grip_speed_limit = values[0], values[1], values[3]
                                 elif len(values) == 2:
                                     self.torque, self.grip_part_width = values[0], values[1]
-                                else:
-                                    self.torque = match.group(1)
+                                elif len(values) == 1:
+                                    self.torque = values[0]
 
                                 if self.width - self.grip_part_width >= self.PART_FALL_WIDTH_THRESHOLD:
                                     self.gripstate=2 # NO PART

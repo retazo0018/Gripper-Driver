@@ -34,6 +34,9 @@ def run_cli_ui(driver):
         
         elif command == "bye":
             driver.disconnect()
+        
+        elif command == "stop":
+            driver.stop()
             
         elif command == "help":
             print("Available commands:")
@@ -43,9 +46,10 @@ def run_cli_ui(driver):
             print("speed?                                                                                       - Get current speed in mm/s")
             print("force?                                                                                       - Get current force value in N")
             print("gripstate?                                                                                   - Get current gripper state")
-            print("grip                                                                                         - Grip a part from the current position")
+            print("grip(<FORCE>, <PART_WIDTH>, <SPEED_LIMIT>) or grip()                                         - Grip a part from the current position")
             print("release(<PULL_BACK_DISTANCE>, <SPEED_LIMIT>) or release(<PULL_BACK_DISTANCE>) or release()   - Release the part from the gripper")
             print("bye                                                                                          - Disconnect from gripper")
+            print("stop                                                                                         - Returns to IDLE state")
             print("exit                                                                                         - Exit the CLI")
 
         elif command == "exit":
