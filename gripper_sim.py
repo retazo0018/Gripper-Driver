@@ -21,7 +21,7 @@ class MockServer:
         self.gripstate = 0
         self.pull_back_distance = 10 # mm; relative to current position
         self.release_speed_limit = 500 # mm/s
-        self.PART_FALL_WIDTH_THRESHOLD = 20
+        self.PART_FALL_WIDTH_THRESHOLD = 15
         self.grip_speed_limit = 500 # mm/s
         self.grip_part_width = 25
     
@@ -89,7 +89,6 @@ class MockServer:
                         response = "GRIPSTATE="+str(self.gripstate)+"\n"
                         conn.sendall(response.encode())
                         conn.sendall(b"END\n")
-                        self.gripstate = 0
 
                     elif command == "CALIBRATE":
                         self.gripstate = 0

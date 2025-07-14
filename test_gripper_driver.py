@@ -17,7 +17,7 @@ def start_gripper_server():
 
 def test_move_to(capsys):
     driver = GripperDriver()
-    driver.move_to(100, 10)
+    driver.move_to(100, 500)
     captured = capsys.readouterr()
     assert "FIN MOVE" in captured.out
 

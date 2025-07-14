@@ -3,7 +3,6 @@
 import socket
 import time
 import threading
-from datetime import datetime
 import re
 from interact import run_cli_ui
 
@@ -53,6 +52,7 @@ class GripperDriver:
     def _initialize_gripperstate(self):
         try:
             self._send_command("STATUS")
+            print("[INFO] Default values of Width, Speed, Torque, Min Width and Max Width are read.")
             response = self._receive_response()[0]
             self.state.width_mm, self.state.speed, self.state.torque, self.state.min_width, self.state.max_width = map(float, response.strip().split(","))
         except Exception as E:
@@ -81,7 +81,7 @@ class GripperDriver:
 
     def _receive_response(self):
         """Receive any number of lines until 'END' is seen or socket closes."""
-        self.socket.settimeout(2.0)
+        self.socket.settimeout(5.0)
         response_lines = []
         buffer = ""
 
@@ -136,9 +136,9 @@ class GripperDriver:
 
                     return response
             else:
-                print(f"[E_NOT_ENOUGH_PARAMS] Invalid move command. Run help to know more.")
+                print(f"[E_NOT_ENOUGH_PARAMS] Invalid move command. Run help to know usage.")
         except Exception as E:
-            print(f"[E_CMD_FAILED] Invalid move command resulted in {E}. Run help to know more.")
+            print(f"[E_CMD_FAILED] Invalid move command resulted in {E}.")
     
     def get_pos(self):
         self._send_command("POS?")
@@ -196,9 +196,9 @@ class GripperDriver:
 
                 return response               
             else:
-                print("[E_NOT_ENOUGH_PARAMS] Invalid grip command. Run help to know usage guide.")
+                print("[E_NOT_ENOUGH_PARAMS] Invalid grip command. Run help to know usage.")
         except Exception as E:
-            print(f"[E_CMD_FAILED] Invalid grip command resulted in {E}.\n Run help to know usage guide.")
+            print(f"[E_CMD_FAILED] Invalid grip command resulted in {E}.")
             
     
     def release(self, command):
@@ -221,7 +221,7 @@ class GripperDriver:
             else:
                 print("[E_NOT_ENOUGH_PARAMS] Invalid release command. Run help to know more.")
         except Exception as E:
-            print(f"[E_CMD_FAILED] Invalid release command resulted in {E}.\n Run help to know more.")
+            print(f"[E_CMD_FAILED] Invalid release command resulted in {E}.")
 
 if __name__ == "__main__":
     driver = GripperDriver()
