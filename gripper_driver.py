@@ -3,7 +3,9 @@
 import socket
 import time
 import threading
-
+from datetime import datetime
+import re
+from interact import run_cli_ui
 
 class GripperState:
     """Represents the internal state of the gripper."""
@@ -35,9 +37,9 @@ class GripperDriver:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
+            print("[E_SUCCESS] Connection established.")
             self.connected = True
             self._initialize_gripperstate()
-            print("[INFO] Connection established.")
             if not self.state.is_calibrated:
                 print("[WARNING] Gripper not calibrated. Calibrating...")
                 self.calibrate()
@@ -45,14 +47,17 @@ class GripperDriver:
             
         except (socket.timeout, ConnectionRefusedError, OSError) as e:
             self.connected = False
-            print(f"[ERROR] Connection failed: {e}")
+            print(f"[E_NOT_INITIALIZED] Connection failed: {e}")
             self._attempt_recovery()   
 
     def _initialize_gripperstate(self):
-        self._send_command("STATUS")
-        response = self._receive_response()[0]
-        self.state.width_mm, self.state.speed, self.state.torque, self.state.min_width, self.state.max_width = map(float, response.strip().split(","))
-    
+        try:
+            self._send_command("STATUS")
+            response = self._receive_response()[0]
+            self.state.width_mm, self.state.speed, self.state.torque, self.state.min_width, self.state.max_width = map(float, response.strip().split(","))
+        except Exception as E:
+            print("[E_CMD_FAILED]. Try reconnecting...")
+
     def disconnect(self):
         if self.socket:
             self._send_command("BYE")
@@ -60,7 +65,7 @@ class GripperDriver:
             self.socket.close()
             self.socket = None
             self.connected = False
-            print("[INFO] Disconnected from gripper")
+            print("[E_SUCCESS] Disconnected from gripper")
 
     def _send_command(self, cmd):
         """Send a string command over TCP."""
@@ -70,7 +75,7 @@ class GripperDriver:
             self.socket.sendall(cmd.encode('utf-8'))
             print(f"[COMMAND] Sent: {cmd}")
         except (BrokenPipeError, OSError):
-            print("[ERROR] Lost connection while sending.")
+            print("[E_NOT_INITIALIZED] Lost connection while sending.")
             self.connected = False
             self._attempt_recovery()
 
@@ -91,13 +96,14 @@ class GripperDriver:
                     line, buffer = buffer.split("\n", 1)
                     line = line.strip()
                     if line == "END":
-                        response = "\n".join(f"[RESPONSE] Received: {line}" for line in response_lines)
+                        response = "\n".join(f"[E_SUCCESS] Received: {line}" for line in response_lines)
                         print(f"{response}")
                         return response_lines
                     if line:
                         response_lines.append(line)
         except socket.timeout:
-            print("[CLIENT] Timeout while waiting for complete response.")
+            print("[E_TIMEOUT] Timeout while waiting for complete response.")
+
             return response_lines if response_lines else None
     
     def _attempt_recovery(self):
@@ -111,43 +117,112 @@ class GripperDriver:
             pass
         self._connect()
 
-    def move_to(self, width_mm, speed=None):
+    def move_to(self, command):
         """Command the gripper to move to a specified width and speed."""
-        with self.lock:
-            if not (self.state.min_width <= width_mm <= self.state.max_width):
-                print("[ERROR] Width out of range.")
-                return
-            if speed is not None:
-                self._send_command(f"MOVE({width_mm},{speed})")
+        try:
+            match = re.match(r"move\(\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)", command)
+            if match:
+                width_mm = float(match.group(1))
+                speed = float(match.group(2)) if match.group(2) is not None else None
+                with self.lock:
+                    if not (self.state.min_width <= width_mm <= self.state.max_width):
+                        print("[E_CMD_FAILED] Width out of range.")
+                        return
+                    if speed is not None:
+                        self._send_command(f"MOVE({width_mm},{speed})")
+                    else:
+                        self._send_command(f"MOVE({width_mm})")
+                    response = self._receive_response()
+
+                    return response
             else:
-                self._send_command(f"MOVE({width_mm})")
-            ack = self._receive_response()
+                print(f"[E_NOT_ENOUGH_PARAMS] Invalid move command. Run help to know more.")
+        except Exception as E:
+            print(f"[E_CMD_FAILED] Invalid move command resulted in {E}. Run help to know more.")
     
     def get_pos(self):
         self._send_command("POS?")
         response = self._receive_response()[0]
         self.state.width_mm = map(float, response.strip().split(","))
+
         return response
 
     def get_speed(self):
         self._send_command("SPEED?")
         response = self._receive_response()[0]
         self.state.speed = map(float, response.strip().split(","))
+
         return response
     
     def get_force(self):
         self._send_command("FORCE?")
         response = self._receive_response()[0]
         self.state.torque = map(float, response.strip().split(","))
+
         return response
 
     def get_gripstate(self):
         self._send_command("GRIPSTATE?")
         response = self._receive_response()[0]
         self.state.gripstate = map(float, response.strip().split(","))
+
         return response
 
     def calibrate(self):
         self._send_command("CALIBRATE")
         response = self._receive_response()
+
         return response
+
+    def grip(self, command):
+        pattern = r"grip(?:\(\s*(?:(\d*\.?\d+)\s*(?:,\s*(\d*\.?\d+))?\s*(?:,\s*(\d*\.?\d+))?)?\s*\))?$"
+        match = re.match(pattern, command)
+        try:
+            if match:
+                force, part_width, speed_limit = None, None, None
+                values = [float(v) for v in match.groups() if v is not None]
+                if len(values)==3:
+                    force, part_width, speed_limit = values[0], values[1], values[2]
+                    self._send_command(f"GRIP({force},{part_width},{speed_limit})")
+                elif len(values)==2:
+                    force, part_width = values[0], values[1]
+                    self._send_command(f"GRIP({force},{part_width})")
+                elif len(values)==1:
+                    force = values[0]
+                    self._send_command(f"GRIP({force})")
+                else:
+                    self._send_command(f"GRIP()")
+                response = self._receive_response()  
+
+                return response               
+            else:
+                print("[E_NOT_ENOUGH_PARAMS] Invalid grip command. Run help to know usage guide.")
+        except Exception as E:
+            print(f"[E_CMD_FAILED] Invalid grip command resulted in {E}.\n Run help to know usage guide.")
+            
+    
+    def release(self, command):
+        try:
+            match = re.match(r"release(?:\(\s*(?:(\d*\.?\d+)(?:\s*,\s*(\d*\.?\d+))?)?\s*\))?$", command, re.IGNORECASE)
+            if match: # Type checking
+                pull_back_distance, release_speed_limit = None, None
+                values = [float(v) for v in match.groups() if v is not None]
+                if len(values) == 2:
+                    pull_back_distance, release_speed_limit = values[0], values[1]
+                    self._send_command(f"RELEASE({pull_back_distance},{release_speed_limit})")
+                elif len(values) == 1:
+                    self._send_command(f"RELEASE({pull_back_distance})")
+                    pull_back_distance = values[0]
+                else:
+                    self._send_command(f"RELEASE()")
+                response = self._receive_response()   
+
+                return response 
+            else:
+                print("[E_NOT_ENOUGH_PARAMS] Invalid release command. Run help to know more.")
+        except Exception as E:
+            print(f"[E_CMD_FAILED] Invalid release command resulted in {E}.\n Run help to know more.")
+
+if __name__ == "__main__":
+    driver = GripperDriver()
+    run_cli_ui(driver)
