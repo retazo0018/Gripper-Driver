@@ -30,7 +30,7 @@ This module is present in `gripper_driver.py` and provides a communication inter
     - Supports commands defined using a Gripper Control Language (GCL) syntax ([Reference Manual](https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/?file=files/downloads/wsg/wsg_gcl_reference_manual_en.pdf&cid=11209)).
     - Users send text-based instructions, which are internally parsed and validated.
 - **Communication Recovery**: 
-    - If the client becomes disconnected from the gripper (e.g., due to a cable disconnection), the driver automatically attempts to re-establish the connection and reloads the previously saved gripper state. This ensures continuity and minimizes disruption in case of temporary connection issues.
+    - If the client becomes disconnected from the gripper (e.g., command `bye`), the driver automatically attempts to re-establish the connection and reloads the previously saved gripper state. This ensures continuity and minimizes disruption in case of temporary connection issues.
 - **Command Parsing & Validation**: 
     - Uses regular expressions to match user commands against expected syntax patterns.
     - Validates commands for correct structure and presence of required parameters.
@@ -72,13 +72,17 @@ The gripper has 8 states according to its manual namely:
     - Error messages if a command fails or cannot be executed.
 
 ### Behavioral Assumptions
+- **Default Parameters**:
+    - Default gripper width, speed and torque is set to 110.0 mm, 550 mm/s and 5 N respectively based on the gripper documentation.
+    - The RESPONSE_TIMEOUT is set to 10 seconds. If the response from the gripper is delayed by this seconds, `[E_TIMEOUT] Timeout while waiting for complete response.` will be obtained.
 - **Move Command Simulation**:
     - The time taken to move is calculated based on the distance between the current and target finger widths and gripper speed as `time_to_move = abs(self.width - self.new_width / self.speed`.
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
     - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
     - `15` is the configurable PART_FALL_WIDTH_THRESHOLD parameter.
-- **Release Command Timing**:
+- **Release Command**:
+    - The width of the gripper after release is equal to `width = min(0.0, width - pull_back_distance)`.
     - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(self.pull_back_distance / (self.release_speed_limit / 100))`. 
 
 ## CLI Interface

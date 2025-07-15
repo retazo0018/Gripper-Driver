@@ -65,6 +65,7 @@ class GripperDriver:
         self.host = host
         self.port = port
         self.timeout = timeout
+        self.RESPONSE_TIMEOUT = 10.0
         self.sock = None
         self.state = GripperState()
         self.lock = threading.Lock()
@@ -150,7 +151,7 @@ class GripperDriver:
             Receive any number of lines until 'END' is seen or socket closes.
         '''
 
-        self.socket.settimeout(5.0)
+        self.socket.settimeout(self.RESPONSE_TIMEOUT)
         response_lines = []
         buffer = ""
 
@@ -314,8 +315,8 @@ class GripperDriver:
                     pull_back_distance, release_speed_limit = values[0], values[1]
                     self._send_command(f"RELEASE({pull_back_distance},{release_speed_limit})")
                 elif len(values) == 1:
-                    self._send_command(f"RELEASE({pull_back_distance})")
                     pull_back_distance = values[0]
+                    self._send_command(f"RELEASE({pull_back_distance})")
                 else:
                     self._send_command(f"RELEASE()")
                 response = self._receive_response()   

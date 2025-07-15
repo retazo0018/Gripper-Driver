@@ -122,7 +122,7 @@ or
 or  
 `release(PULL_BACK_DISTANCE, SPEED_LIMIT)`
 
-- `PULL_BACK_DISTANCE`: Distance the gripper needs to move further apart after release  
+- `PULL_BACK_DISTANCE`: Distance the gripper needs to move further apart after release. 
 - `SPEED_LIMIT`: Speed at which the release should take place  
 - Default values are assumed if fewer arguments are provided.
 

@@ -33,7 +33,7 @@ class MockServer:
         
         This class acts as a stand-in for a physical two-finger gripper, allowing development
         and testing of the driver without real hardware. It listens for incoming socket
-        connections, processes text-based GCL commands (e.g., MOVE, STATUS, CALIBRATE),
+        connections, processes text-based GCL commands (e.g., MOVE, GRIP, CALIBRATE),
         and responds with simulated data.
 
         Features:
@@ -61,7 +61,7 @@ class MockServer:
         self.gripstate = 0
         self.pull_back_distance = 10 # mm; relative to current position
         self.release_speed_limit = 500 # mm/s
-        self.PART_FALL_WIDTH_THRESHOLD = 15 # mm
+        self.PART_FALL_WIDTH_THRESHOLD = 10 # mm
         self.grip_speed_limit = 500 # mm/s
         self.grip_part_width = 25 # mm
     
@@ -106,10 +106,12 @@ class MockServer:
                             match = re.match(r"MOVE\(\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)", command)
                             if match:
                                 self.speed = float(match.group(2)) if match.group(2) is not None else self.speed
-                                time_to_move = abs(self.width - float(match.group(1))) / self.speed
+                                time_to_move = (abs(self.width - float(match.group(1))) / self.speed) * 10
                                 self.width = float(match.group(1))
-                                time.sleep(time_to_move)
                                 self.gripstate = 6
+                                sleep_duration = min(9.9, time_to_move)
+                                time.sleep(sleep_duration)
+                                self.gripstate = 0
                                 conn.sendall(b"FIN MOVE\n")
                                 conn.sendall(b"END\n")
                             else:
@@ -176,7 +178,7 @@ class MockServer:
                                 arg_str = match.group(1)
                                 values = [float(x.strip()) for x in arg_str.split(",")] if arg_str else []
                                 if len(values) == 3:
-                                    self.torque, self.grip_part_width, self.grip_speed_limit = values[0], values[1], values[3]
+                                    self.torque, self.grip_part_width, self.grip_speed_limit = values[0], values[1], values[2]
                                 elif len(values) == 2:
                                     self.torque, self.grip_part_width = values[0], values[1]
                                 elif len(values) == 1:
@@ -214,7 +216,9 @@ class MockServer:
                                     self.pull_back_distance = values[0]
 
                                 self.gripstate = 5
-                                time.sleep(self.pull_back_distance / (self.release_speed_limit/100)) # Diving by 100 to show difference
+                                sleep_duration = min(9.9, self.pull_back_distance / (self.release_speed_limit/100))
+                                time.sleep(sleep_duration) # Diving by 100 to show difference
+                                self.width = max(0.0, self.width - self.pull_back_distance)
                                 self.gripstate = 0
                                 conn.sendall(b"FIN RELEASE\n")
                                 conn.sendall(b"END\n")
