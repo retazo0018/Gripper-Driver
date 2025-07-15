@@ -76,6 +76,9 @@ where `WIDTH` should be in mm and `SPEED` should be in mm/s.
 Wrong input `move` results in:  
 `[E_NOT_ENOUGH_PARAMS] Invalid move command. Run help to know usage.`
 
+Out of range width input results in:
+`[E_CMD_FAILED] Width out of range.`
+
 ## `grip`
 
 Grips a part at the current position.
@@ -90,8 +93,8 @@ or
 `grip(FORCE, GRIP_PART_WIDTH, GRIP_SPEED_LIMIT)`
 
 - `FORCE`: Torque to grip the part in N  
-- `GRIP_PART_WIDTH`: Width of the part that needs to be gripped  
-- `GRIP_SPEED_LIMIT`: Speed limit  
+- `GRIP_PART_WIDTH`: Width in mm of the part that needs to be gripped  
+- `GRIP_SPEED_LIMIT`: Speed limit in mm/s
 - Default values are assumed if fewer arguments are provided.
 
 **Usage Example:**  
@@ -103,9 +106,14 @@ or
 [E_SUCCESS] Received: ACK HOLDING  
 [E_SUCCESS] Received: FIN GRIP
 
+**Other Examples:**  
+`grip(2, 20, 500)`
+`grip`
+
+
 **Note:**  
 If you try to grip a part whose width is lower or higher than the current width of the gripper, you will receive:  
-[E_SUCCESS] Received: ACK GRIP  
+[E_SUCCESS] Received: ACK GRIP
 [E_SUCCESS] Received: No part detected between the fingers. Set width between the fingers and width of the part correctly.  
 [E_SUCCESS] Received: ACK NO PART
 
@@ -133,6 +141,10 @@ or
 [COMMAND] Sent: RELEASE()  
 [E_SUCCESS] Received: ACK RELEASE  
 [E_SUCCESS] Received: FIN RELEASE
+
+**Other Examples:**  
+`release`
+`release(20, 500)`
 
 **Note:**  
 When `release` is executed without first gripping a part, the following is observed:  
