@@ -1,7 +1,5 @@
 # Gripper Driver - Ashwin Murali
-Program a driver for a two-finger gripper used in bin picking applications. Goal is to create a Python program that receives a width in millimeters and controls the gripper to maintain that distance between its two fingers. Program should also include any other features relevant for a driver. 
-
-See [task overview](task.md) to know the details of this challenge.
+Implementation of a driver for a two-finger gripper used in bin picking applications. See [task overview](task.md) to know the details of this challenge.
 
 # Getting-started
 - Clone the repository.
@@ -10,7 +8,7 @@ See [task overview](task.md) to know the details of this challenge.
 
 - Run `pytest -v` to run unit tests.
 
-- Run `python gripper_sim.py` in a terminal to simulates the mock gripper through a socket server.
+- Run `python gripper_sim.py` in a terminal to simulates a mock gripper through a socket server.
 
 - Run `python gripper_driver.py` to start a client CLI to communicate with the mock gripper. The communication is established through sockets as text-based interface. Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
 
@@ -50,10 +48,10 @@ This module is present in `gripper_driver.py` and provides a communication inter
     - Maintains an internal representation of the gripper’s state to assist with decision-making and command sequencing.
 
 ## Mock Gripper Simulation
-Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware.
-![alt text](docs/state_flow_diagram.png "SFD")
+Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware. 
 
-- The state "PART LOST" is a future work and out of scope for this implementation.
+The below picture visualizes the state flow diagram of the gripper. The state "PART LOST" is a future work and out of scope for this implementation.
+![alt text](docs/state_flow_diagram.png "SFD")
 
 ### Features
 - **Command Execution**:
@@ -61,17 +59,17 @@ Since the actual hardware gripper is not available, a mock gripper has been impl
 - **State Management**:
     - The mock gripper maintains an internal state machine based on the official state diagram provided in the manufacturer's manual. All states are simulated except for the PART LOST state.
 - **Client Communication**:
-    - The gripper sends real-time status updates to all connected clients. Each command results in:
+    - The gripper sends real-time status updates to all connected clients. Command results in ackowledgements such as:
     - `ACK <COMMAND_NAME>`: Acknowledgement that the command has been received.
-    - `FIN <COMMAND_NAME>`: Notification that the command has been successfully completed.
+    - `FIN <COMMAND_NAME>`: Notification that the action command has been successfully completed.
     - Error messages if a command fails or cannot be executed.
 
 ### Behavioral Assumptions
 - **Move Command Simulation**:
-    - The time taken to move is calculated based on the distance between the current and target finger widths as `time_to_move = abs(self.width - self.new_width / self.speed`.
+    - The time taken to move is calculated based on the distance between the current and target finger widths and gripper speed as `time_to_move = abs(self.width - self.new_width / self.speed`.
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
-    - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width being too wide or too narrow, and a NO PART error is returned.
+    - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
 - **Release Command Timing**:
     - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(self.pull_back_distance / (self.release_speed_limit / 100))`. 
 

@@ -1,4 +1,5 @@
 # Challenge Overview
+Goal is to create a Python program that receives a width in millimeters and controls the gripper to maintain that distance between its two fingers. Program should also include any other features relevant for a driver. 
 
 ## Gripper Details
 The driver must be implemented based on the manufacturer's documentation given [here](https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/).
