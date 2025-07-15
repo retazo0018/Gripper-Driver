@@ -1,5 +1,5 @@
 # Gripper Driver - Ashwin Murali
-Implementation of a driver for a two-finger gripper used in bin picking applications. See [task overview](task.md) to know the details of this challenge.
+Implementation of a driver for a two-finger gripper used in bin picking applications. See [task overview](docs/task.md) to know the details of this challenge.
 
 # Getting-started
 - Clone the repository.
