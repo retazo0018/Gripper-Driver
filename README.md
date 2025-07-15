@@ -8,7 +8,7 @@ Implementation of a driver for a two-finger gripper used in bin picking applicat
 - Run `python gripper_sim.py` in a terminal to simulate a mock gripper through a socket server.
 - Run `python gripper_driver.py` in another terminal to start a client CLI to communicate with the mock gripper. The communication is established through a text-based interface. 
     - Type `help` in the CLI to know the list of commands and their purposes.
-    - See `docs/user_guide.md` to know detailed usages of all the commands.
+    - See [user guide](docs/user_guide.md) to know detailed usages of all the commands.
     - Multiple clients can be started to communicate with the gripper simultaneously.
 
 # Sample Results
