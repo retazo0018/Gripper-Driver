@@ -1,4 +1,25 @@
-# Gripper Simulator
+'''
+
+    Copyright (c) 2025 Ashwin Murali <ashwin.murali99@gmail.com>
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+'''
 
 import socket
 import threading
@@ -7,6 +28,25 @@ import time
 
 
 class MockServer:
+    '''
+        MockServer simulates a gripper device over TCP/IP for testing the GripperDriver.
+        
+        This class acts as a stand-in for a physical two-finger gripper, allowing development
+        and testing of the driver without real hardware. It listens for incoming socket
+        connections, processes text-based GCL commands (e.g., MOVE, STATUS, CALIBRATE),
+        and responds with simulated data.
+
+        Features:
+            - Accepts and parses incoming GCL commands from a client
+            - Sends simulated multi-line responses (e.g., ACK, FIN, STATUS)
+            - Maintains an internal GripperState object to track position, speed, and torque
+            - Can simulate delays, state updates, and communication behavior of a real gripper
+        
+        Attributes:
+            - host (str): IP address to bind the server socket
+            - port (int): Port number to listen for client connections
+    '''
+    
     def __init__(self, host='127.0.0.1', port=8000):
         self.host = host
         self.port = port
@@ -21,17 +61,34 @@ class MockServer:
         self.gripstate = 0
         self.pull_back_distance = 10 # mm; relative to current position
         self.release_speed_limit = 500 # mm/s
-        self.PART_FALL_WIDTH_THRESHOLD = 15
+        self.PART_FALL_WIDTH_THRESHOLD = 15 # mm
         self.grip_speed_limit = 500 # mm/s
-        self.grip_part_width = 25
+        self.grip_part_width = 25 # mm
     
     def to_status_string(self):
+        '''
+            Returns default parameters with its values as a string.
+        '''
+        
         return f"{self.width},{self.speed},{self.torque},{self.min_width},{self.max_width}"
 
     def to_calibration_string(self):
+        '''
+            Returns calibration parameters with its values as a string.
+        '''
+        
         return f"{self.min_width},{self.max_width}"
 
     def handle_client(self, conn, addr):
+        ''' 
+            Handles communication with a connected client.
+
+            This method runs in a dedicated thread or process for each client connection.
+            It receives GCL commands sent over the socket, processes them by updating the
+            internal GripperState accordingly, and sends appropriate simulated responses
+            (e.g., 'ACK', 'FIN', 'STATUS') back to the client.
+        '''
+        
         print(f"[SERVER] Connected by {addr}")
         with conn:
             self.gripstate = 1
@@ -182,6 +239,10 @@ class MockServer:
                     break
 
     def start(self):
+        '''
+            Starts the socket server for the mock gripper to enable communication with client.
+        '''
+        
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.host, self.port))

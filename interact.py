@@ -2,6 +2,10 @@ import time
 
 
 def run_cli_ui(driver):
+    '''
+        Starts a CLI Interface for the framework.
+    '''
+    
     time.sleep(1)
     print("Ready for commands. Type 'help' for available commands.")
 

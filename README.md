@@ -4,13 +4,15 @@ Program a driver for a two-finger gripper used in bin picking applications. Goal
 See [task overview](task.md) to know the details of this challenge.
 
 # Getting-started
-- Clone the repository. Most of the packages used for this work is pre-available as part of a Python Installation. However, if any package is missing, it can be installed by running this command `pip install <PACKAGE_NAME>`.
+- Clone the repository.
+
+- Install dependencies by running `pip install -r requirements.txt`.
 
 - Run `pytest -v` to run unit tests.
 
-- Run `python gripper_sim.py` in a terminal launches the socket server that simulates a mock gripper.
+- Run `python gripper_sim.py` in a terminal to simulates the mock gripper through a socket server.
 
-- Run `python gripper_driver.py` to start a client CLI to with the mock gripper. The communication is established through sockets as text-based interface. Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
+- Run `python gripper_driver.py` to start a client CLI to communicate with the mock gripper. The communication is established through sockets as text-based interface. Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
 
 # Sample Outputs
 ![alt text](docs/usage_eg1.png "Usage Example 1")
@@ -19,6 +21,9 @@ See [task overview](task.md) to know the details of this challenge.
 The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
 
 ![alt text](docs/usage_eg2.png "Usage Example 2")
+
+## Sample Demo Video
+See [video](docs/sample_demo.m4v) for a sample demo of using the driver's CLI to communicate with the gripper.
 
 # Codebase
 
@@ -48,6 +53,8 @@ This module is present in `gripper_driver.py` and provides a communication inter
 Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware.
 ![alt text](docs/state_flow_diagram.png "SFD")
 
+- The state "PART LOST" is a future work and out of scope for this implementation.
+
 ### Features
 - **Command Execution**:
     - The mock gripper receives parsed and type-checked commands from the driver. It executes the actions specified in each command, mimicking the behavior of the real gripper.
@@ -61,7 +68,7 @@ Since the actual hardware gripper is not available, a mock gripper has been impl
 
 ### Behavioral Assumptions
 - **Move Command Simulation**:
-    - The time taken to move is calculated based on the distance between the current and target finger widths as `time_to_move = abs(self.width - float(match.group(1))) / self.speed`.
+    - The time taken to move is calculated based on the distance between the current and target finger widths as `time_to_move = abs(self.width - self.new_width / self.speed`.
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
     - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width being too wide or too narrow, and a NO PART error is returned.
@@ -70,3 +77,7 @@ Since the actual hardware gripper is not available, a mock gripper has been impl
 
 ## CLI Interface
 - The CLI interface enables user to communicate with the gripper through the driver. The code is available in `interact.py`.
+
+# Acknowledgments
+- [Stack Overflow](https://stackoverflow.com/questions) - Helped resolve aand debug technical issues in the implementation.
+- [ChatGPT](https://chatgpt.com/) – Assisted with refining README documentation and docstrings in code.

@@ -1,4 +1,4 @@
-# Unit Test to test the framework
+# Unit Tests to test the framework
 
 from gripper_driver import GripperDriver
 from gripper_sim import MockServer 

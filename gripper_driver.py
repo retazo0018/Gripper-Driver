@@ -1,4 +1,25 @@
-# driver_client.py
+'''
+
+    Copyright (c) 2025 Ashwin Murali <ashwin.murali99@gmail.com>
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+'''
 
 import socket
 import time
@@ -7,17 +28,39 @@ import re
 from interact import run_cli_ui
 
 class GripperState:
-    """Represents the internal state of the gripper."""
+    '''
+        Represents a copy of the internal state of the mock gripper.
+    '''
+        
     def __init__(self):
         self.width_mm = 0.0
         self.speed = 0.0
         self.torque = 0.0
         self.is_calibrated = False
         self.min_width = 0.0
-        self.max_width = 0.0  # default max
+        self.max_width = 0.0 
 
 
 class GripperDriver:
+    ''' 
+        GripperDriver provides a TCP/IP interface to control and monitor a two-finger gripper.
+        This class manages socket communication with the gripper using a text-based GCL (Gripper Command Language) protocol.
+        It supports sending commands (e.g., MOVE, STATUS, CALIBRATE), receiving multi-line responses, and maintaining an
+        up-to-date internal state of the gripper including position (width), speed, and torque.
+
+        Features:
+            - Establishes and maintains a TCP/IP connection with the gripper
+            - Sends control commands to set position or initiate calibration
+            - Retrieves current gripper status and parses response data
+            - Handles communication interruptions and reconnects if needed
+            - Provides recovery behavior and safety defaults for bin picking applications
+        
+        Attributes:
+            - host (str): IP address of the gripper
+            - port (int): Port number for TCP connection
+            - timeout (int): Timeout
+
+    '''
     def __init__(self, host='127.0.0.1', port=8000, timeout=5):
         self.host = host
         self.port = port
@@ -26,11 +69,13 @@ class GripperDriver:
         self.state = GripperState()
         self.lock = threading.Lock()
         self.connected = False
-        self.multi_part_commands = ["MOVE", "CALIBRATE"]
         self._connect()
 
     def _connect(self):
-        """Establish TCP connection to gripper."""
+        '''
+            Establish TCP connection to gripper.
+        '''
+        
         try:
             print(f"[INFO] Connecting to gripper at {self.host}:{self.port}...")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -50,6 +95,10 @@ class GripperDriver:
             self._attempt_recovery()   
 
     def _initialize_gripperstate(self):
+        '''
+            Initializes the state of the gripper.
+        '''
+        
         try:
             self._send_command("STATUS")
             print("[INFO] Default values of Width, Speed, Torque, Min Width and Max Width are read.")
@@ -59,6 +108,10 @@ class GripperDriver:
             print("[E_CMD_FAILED]. Try reconnecting...")
 
     def disconnect(self):
+        '''
+            Disconnects the client from the gripper.
+        '''
+        
         if self.socket:
             self._send_command("BYE")
             response = self._receive_response()
@@ -68,13 +121,20 @@ class GripperDriver:
             print("[E_SUCCESS] Disconnected from gripper")
     
     def stop(self):
+        '''
+            Returns the gripper to the IDLE state.
+        '''
+        
         if self.socket:
             self._send_command("STOP")
             response = self._receive_response()
             print("[E_SUCCESS] Returned to IDLE state.")
 
     def _send_command(self, cmd):
-        """Send a string command over TCP."""
+        '''
+            Send a string command over TCP.
+        '''
+
         if not self.connected:
             self._attempt_recovery()
         try:
@@ -86,7 +146,10 @@ class GripperDriver:
             self._attempt_recovery()
 
     def _receive_response(self):
-        """Receive any number of lines until 'END' is seen or socket closes."""
+        '''
+            Receive any number of lines until 'END' is seen or socket closes.
+        '''
+
         self.socket.settimeout(5.0)
         response_lines = []
         buffer = ""
@@ -113,7 +176,10 @@ class GripperDriver:
             return response_lines if response_lines else None
     
     def _attempt_recovery(self):
-        """Attempt to reconnect to the gripper."""
+        '''
+            Attempt to reconnect to the gripper.
+        '''
+        
         print("[INFO] Attempting communication recovery...")
         time.sleep(1)
         try:
@@ -124,7 +190,10 @@ class GripperDriver:
         self._connect()
 
     def move_to(self, command):
-        """Command the gripper to move to a specified width and speed."""
+        '''
+            Command the gripper to move to a specified width and speed.
+        '''
+
         try:
             match = re.match(r"move\(\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)", command)
             if match:
@@ -147,6 +216,10 @@ class GripperDriver:
             print(f"[E_CMD_FAILED] Invalid move command resulted in {E}.")
     
     def get_pos(self):
+        '''
+            Returns the current position of the gripper.
+        '''
+        
         self._send_command("POS?")
         response = self._receive_response()[0]
         self.state.width_mm = map(float, response.strip().split(","))
@@ -154,6 +227,10 @@ class GripperDriver:
         return response
 
     def get_speed(self):
+        '''
+            Returns the current speed of the gripper.
+        '''
+        
         self._send_command("SPEED?")
         response = self._receive_response()[0]
         self.state.speed = map(float, response.strip().split(","))
@@ -161,6 +238,10 @@ class GripperDriver:
         return response
     
     def get_force(self):
+        '''
+            Returns the torque of the gripper.
+        '''
+        
         self._send_command("FORCE?")
         response = self._receive_response()[0]
         self.state.torque = map(float, response.strip().split(","))
@@ -168,6 +249,10 @@ class GripperDriver:
         return response
 
     def get_gripstate(self):
+        '''
+            Returns the current state of the gripper as per the State Flow Diagram.
+        '''
+        
         self._send_command("GRIPSTATE?")
         response = self._receive_response()[0]
         self.state.gripstate = map(float, response.strip().split(","))
@@ -175,12 +260,20 @@ class GripperDriver:
         return response
 
     def calibrate(self):
+        '''
+            Calibrates the gripper to default min and max width.
+        '''
+        
         self._send_command("CALIBRATE")
         response = self._receive_response()
 
         return response
 
     def grip(self, command):
+        '''
+            Executes grip action at the current gripper position.
+        '''
+        
         pattern = r"grip(?:\(\s*(?:(\d*\.?\d+)\s*(?:,\s*(\d*\.?\d+))?\s*(?:,\s*(\d*\.?\d+))?)?\s*\))?$"
         match = re.match(pattern, command)
         try:
@@ -208,6 +301,10 @@ class GripperDriver:
             
     
     def release(self, command):
+        '''
+            Releases the part gripped by the gripper.
+        '''
+        
         try:
             match = re.match(r"release(?:\(\s*(?:(\d*\.?\d+)(?:\s*,\s*(\d*\.?\d+))?)?\s*\))?$", command, re.IGNORECASE)
             if match: # Type checking
@@ -230,5 +327,14 @@ class GripperDriver:
             print(f"[E_CMD_FAILED] Invalid release command resulted in {E}.")
 
 if __name__ == "__main__":
+    '''
+        Entry point for running the GripperDriver as a standalone script.
+
+        This block initializes the GripperDriver instance and launches a simple
+        command-line interface (CLI) for interacting with the gripper. It allows
+        users to send commands (e.g., MOVE, STATUS, CALIBRATE) and view responses
+        directly from the terminal for testing or debugging purposes.
+    '''
+    
     driver = GripperDriver()
     run_cli_ui(driver)
