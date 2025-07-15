@@ -5,30 +5,32 @@ Implementation of a driver for a two-finger gripper used in bin picking applicat
 - Clone the repository.
 - Install dependencies by running `pip install -r requirements.txt`.
 - Run `pytest -v` to run unit tests.
-- Run `python gripper_sim.py` in a terminal to simulates a mock gripper through a socket server.
-- Run `python gripper_driver.py` in another terminal to start a client CLI to communicate with the mock gripper. The communication is established through sockets as a text-based interface. 
-    - Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
+- Run `python gripper_sim.py` in a terminal to simulate a mock gripper through a socket server.
+- Run `python gripper_driver.py` in another terminal to start a client CLI to communicate with the mock gripper. The communication is established through a text-based interface. 
+    - Type `help` in the CLI to know the list of commands and their purposes.
     - See `docs/user_guide.md` to know detailed usages of all the commands.
+    - Multiple clients can be started to communicate with the gripper simultaneously.
 
-# Sample Outputs
+# Sample Results
+
+## Demo Video
+See [video](docs/sample_demo.m4v) for a sample demo of using the driver's CLI to communicate with the gripper.
+
+## Example - HELP, GRIP, GRIPSTATE? and STOP Commands
 ![alt text](docs/usage_eg1.png "Usage Example 1")
 
-## Example - MOVE, GRIP and RELEASE Commands
+## Example - MOVE, POS, GRIP and RELEASE Commands
 The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
-
 ![alt text](docs/usage_eg2.png "Usage Example 2")
-
-## Sample Demo Video
-See [video](docs/sample_demo.m4v) for a sample demo of using the driver's CLI to communicate with the gripper.
 
 # Codebase
 
 ## Gripper Driver
-This module is present in `gripper_driver.py` and provides a communication interface between the user and a mock gripper. It acts as a middle layer that enables seamless interaction by handling command transmission, response parsing, and maintaining the internal state of the gripper.
+This module is present in `gripper_driver.py` and provides a communication interface between a client user and the gripper. It acts as a middle layer that enables seamless interaction by handling command transmission, response parsing, and maintaining the internal state of the gripper.
 ### Features
 - **Text-Based Command Interface**: 
     - Supports commands defined using a Gripper Control Language (GCL) syntax ([Reference Manual](https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/?file=files/downloads/wsg/wsg_gcl_reference_manual_en.pdf&cid=11209)).
-    - Users send text-based instructions, which are internally parsed and validated.
+    - Clients send text-based instructions, which are internally parsed and validated.
 - **Communication Recovery**: 
     - If the client becomes disconnected from the gripper (e.g., command `bye`), the driver automatically attempts to re-establish the connection and reloads the previously saved gripper state. This ensures continuity and minimizes disruption in case of temporary connection issues.
 - **Command Parsing & Validation**: 
@@ -76,14 +78,14 @@ The gripper has 8 states according to its manual namely:
     - Default gripper width, speed and torque is set to 110.0 mm, 550 mm/s and 5 N respectively based on the gripper documentation.
     - The RESPONSE_TIMEOUT is set to 10 seconds. If the response from the gripper is delayed by this seconds, `[E_TIMEOUT] Timeout while waiting for complete response.` will be obtained.
 - **Move Command Simulation**:
-    - The time taken to move is calculated based on the distance between the current and target finger widths and gripper speed as `time_to_move = abs(self.width - self.new_width / self.speed`.
+    - The time taken to move is calculated based on the distance between the current width and target width and gripper speed as `time_to_move = abs(width - new_width / speed`.
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
-    - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
-    - `15` is the configurable PART_FALL_WIDTH_THRESHOLD parameter.
+    - When `abs(width - grip_part_width >= PART_FALL_WIDTH_THRESHOLD)` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
+    - `10 mm` is the default value to PART_FALL_WIDTH_THRESHOLD parameter.
 - **Release Command**:
     - The width of the gripper after release is equal to `width = min(0.0, width - pull_back_distance)`.
-    - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(self.pull_back_distance / (self.release_speed_limit / 100))`. 
+    - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(pull_back_distance / (release_speed_limit / 100))`. 
 
 ## CLI Interface
 - The CLI interface enables user to communicate with the gripper through the driver. The code is available in `interact.py`.
