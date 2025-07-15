@@ -3,14 +3,12 @@ Implementation of a driver for a two-finger gripper used in bin picking applicat
 
 # Getting-started
 - Clone the repository.
-
 - Install dependencies by running `pip install -r requirements.txt`.
-
 - Run `pytest -v` to run unit tests.
-
 - Run `python gripper_sim.py` in a terminal to simulates a mock gripper through a socket server.
-
-- Run `python gripper_driver.py` to start a client CLI to communicate with the mock gripper. The communication is established through sockets as text-based interface. Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
+- Run `python gripper_driver.py` in another terminal to start a client CLI to communicate with the mock gripper. The communication is established through sockets as a text-based interface. 
+    - Type `help` in the CLI to know the list of commands and their purposes. Multiple clients can be started to communicate with the gripper simultaneously.
+    - See `docs/user_guide.md` to know detailed usages of all the commands.
 
 # Sample Outputs
 ![alt text](docs/usage_eg1.png "Usage Example 1")
@@ -52,6 +50,15 @@ Since the actual hardware gripper is not available, a mock gripper has been impl
 
 The below picture visualizes the state flow diagram of the gripper. The state "PART LOST" is a future work and out of scope for this implementation.
 ![alt text](docs/state_flow_diagram.png "SFD")
+The gripper has 8 states according to its manual namely:
+- 0 - IDLE
+- 1 - GRASPING
+- 2 - NO PART
+- 3 - PART LOST
+- 4 - HOLDING
+- 5 - RELEASING
+- 6 - POSITIONING
+- 7 - ERROR
 
 ### Features
 - **Command Execution**:
@@ -70,6 +77,7 @@ The below picture visualizes the state flow diagram of the gripper. The state "P
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
     - When `width - grip_part_width >= 15` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
+    - `15` is the configurable PART_FALL_WIDTH_THRESHOLD parameter.
 - **Release Command Timing**:
     - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(self.pull_back_distance / (self.release_speed_limit / 100))`. 
 

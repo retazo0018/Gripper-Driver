@@ -182,7 +182,7 @@ class MockServer:
                                 elif len(values) == 1:
                                     self.torque = values[0]
 
-                                if self.width - self.grip_part_width >= self.PART_FALL_WIDTH_THRESHOLD:
+                                if abs(self.width - self.grip_part_width) >= self.PART_FALL_WIDTH_THRESHOLD:
                                     self.gripstate=2 # NO PART
                                     conn.sendall(b"No part detected between the fingers. Set width between the fingers and width of the part correctly.\n")
                                     conn.sendall(b"ACK NO PART\n")
