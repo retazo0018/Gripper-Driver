@@ -78,14 +78,14 @@ The gripper has 8 states according to its manual namely:
     - Default gripper width, speed and torque is set to 110.0 mm, 550 mm/s and 5 N respectively based on the gripper documentation.
     - The RESPONSE_TIMEOUT is set to 10 seconds. If the response from the gripper is delayed by this seconds, `[E_TIMEOUT] Timeout while waiting for complete response.` will be obtained.
 - **Move Command Simulation**:
-    - The time taken to move is calculated based on the distance between the current width and target width and gripper speed as `time_to_move = abs(width - new_width / speed`.
+    - The time taken to move is calculated based on the distance between the current width and target width and gripper speed as `time_to_move = (abs(width - new_width) / speed) * 10`. The result is multiplied by `10` to only feel the difference.
     - The program sleeps for this duration to simulate movement time.
 - **Grip Command and Part Detection**: When executing a `GRIP` command, the mock gripper checks whether a part is detected using the following condition:
-    - When `abs(width - grip_part_width >= PART_FALL_WIDTH_THRESHOLD)` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
+    - When `abs(width - grip_part_width) >= PART_FALL_WIDTH_THRESHOLD)` is True, it indicates that the part was not correctly gripped due to the width between the fingers being too wide or too narrow, and NO PART state is returned.
     - `10 mm` is the default value to PART_FALL_WIDTH_THRESHOLD parameter.
 - **Release Command**:
     - The width of the gripper after release is equal to `width = min(0.0, width - pull_back_distance)`.
-    - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(pull_back_distance / (release_speed_limit / 100))`. 
+    - The time taken to release a part is calculated based on a simulated pull-back distance and speed limit as `time.sleep(pull_back_distance / (release_speed_limit / 100))`. The speed is divided by 100 here to only feel the difference.
 
 ## CLI Interface
 - The CLI interface enables user to communicate with the gripper through the driver. The code is available in `interact.py`.
