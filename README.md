@@ -19,7 +19,7 @@ See [video](docs/sample_demo.m4v) for a sample demo of using the driver's CLI to
 ## Example - HELP, GRIP, GRIPSTATE? and STOP Commands
 ![alt text](docs/usage_eg1.png "Usage Example 1")
 
-## Example - MOVE, POS, GRIP and RELEASE Commands
+## Example - MOVE, POS?, GRIP and RELEASE Commands
 The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
 ![alt text](docs/usage_eg2.png "Usage Example 2")
 
@@ -73,7 +73,7 @@ The gripper has 8 states according to its manual namely:
     - `FIN <COMMAND_NAME>`: Notification that the action command has been successfully completed.
     - Error messages if a command fails or cannot be executed.
 
-### Behavioral Assumptions
+## Behavioral Assumptions
 - **Default Parameters**:
     - Default gripper width, speed and torque is set to 110.0 mm, 550 mm/s and 5 N respectively based on the gripper documentation.
     - The RESPONSE_TIMEOUT is set to 10 seconds. If the response from the gripper is delayed by this seconds, `[E_TIMEOUT] Timeout while waiting for complete response.` will be obtained.
