@@ -17,11 +17,15 @@ Implementation of a driver for a two-finger gripper used in bin picking applicat
 See [video](docs/sample_demo.m4v) for a sample demo of using the driver's CLI to communicate with the gripper.
 
 ## Example - HELP, GRIP, GRIPSTATE? and STOP Commands
-![alt text](docs/usage_eg1.png "Usage Example 1")
+| ![eg1](docs/usage_eg1.png "Usage Example 1") |
+|:--:|
+| *Figure 1: Usage Example1* |
 
 ## Example - MOVE, POS?, GRIP and RELEASE Commands
 The following screenshot shows a sample usage of MOVE, GRIP and RELEASE commands through this work's gripper driver simulated against the mock gripper. 
-![alt text](docs/usage_eg2.png "Usage Example 2")
+| ![eg1](docs/usage_eg2.png "Usage Example 2") |
+|:--:|
+| *Figure 2: Usage Example2* |
 
 # Codebase
 
@@ -51,7 +55,10 @@ This module is present in `gripper_driver.py` and provides a communication inter
 Since the actual hardware gripper is not available, a mock gripper has been implemented in `gripper_sim.py` to simulate the essential behavior of the real device. This mock gripper allows for testing and development without requiring physical hardware. 
 
 The below picture visualizes the state flow diagram of the gripper. The state "PART LOST" is a future work and out of scope for this implementation.
-![alt text](docs/state_flow_diagram.png "SFD")
+| ![SFD](docs/state_flow_diagram.png "SFD") |
+|:--:|
+| *Figure 3: State Flow Diagram (Ref: https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/)* |
+
 The gripper has 8 states according to its manual namely:
 - 0 - IDLE
 - 1 - GRASPING
