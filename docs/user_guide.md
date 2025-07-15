@@ -107,7 +107,7 @@ or
 [E_SUCCESS] Received: FIN GRIP
 
 **Other Examples:**  
-`grip(2, 20, 500)`
+`grip(2, 20, 500)`,
 `grip`
 
 
@@ -143,7 +143,7 @@ or
 [E_SUCCESS] Received: FIN RELEASE
 
 **Other Examples:**  
-`release`
+`release`,
 `release(20, 500)`
 
 **Note:**  
