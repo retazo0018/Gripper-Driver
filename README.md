@@ -54,7 +54,7 @@ The gripper has 8 states according to its manual namely:
 - 0 - IDLE
 - 1 - GRASPING
 - 2 - NO PART
-- 3 - PART LOST
+- 3 - PART LOST (Out of Scope, Future Work)
 - 4 - HOLDING
 - 5 - RELEASING
 - 6 - POSITIONING
