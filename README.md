@@ -1,4 +1,4 @@
-# Gripper Driver
+# Gripper Driver - Ashwin Murali
 Program a driver for a two-finger gripper used in bin picking applications. Goal is to create a Python program that receives a width in millimeters and controls the gripper to maintain that distance between its two fingers. Program should also include any other features relevant for a driver. 
 
 See [task overview](task.md) to know the details of this challenge.
