@@ -1,4 +1,4 @@
-# Gripper Driver - Ashwin Murali
+# Gripper Driver - Ashwin Murali (ashwin.murali99@gmail.com)
 Implementation of a driver for a two-finger gripper used in bin picking applications. See [task overview](docs/task.md) to know the details of this challenge.
 
 # Getting-started
@@ -57,7 +57,7 @@ Since the actual hardware gripper is not available, a mock gripper has been impl
 The below picture visualizes the state flow diagram of the gripper. The state "PART LOST" is a future work and out of scope for this implementation.
 | ![SFD](docs/state_flow_diagram.png "SFD") |
 |:--:|
-| *Figure 3: State Flow Diagram (Ref: https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/)* |
+| *Figure 3: State Flow Diagram (Ref: https://weiss-robotics.com/servo-electric/wsg-series/product/wsg/selectVariant/wsg-50-110/?file=files/downloads/wsg/wsg_gcl_reference_manual_en.pdf&cid=11209)* |
 
 The gripper has 8 states according to its manual namely:
 - 0 - IDLE
